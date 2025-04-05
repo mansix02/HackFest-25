@@ -6,7 +6,7 @@ import Dashboard from './components/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import PrivateRoute from './components/PrivateRoute';
 
-// This component redirects based on user role
+// This component redirects based on user role ... 
 const RoleRouter = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
