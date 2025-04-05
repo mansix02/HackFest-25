@@ -69,24 +69,17 @@ export const getEmployeeById = async (employeeId: string): Promise<Employee | nu
 
 export const getEmployeeByUserId = async (userId: string): Promise<Employee | null> => {
   try {
-    try {
-      // Try to use the indexed query first
-      const employeesRef = ref(realtimeDb, 'employees');
-      const employeeQuery = query(employeesRef, orderByChild('userId'), equalTo(userId));
-      const snapshot = await get(employeeQuery);
-      
-      if (snapshot.exists()) {
-        const employees = snapshot.val();
-        const employeeId = Object.keys(employees)[0];
-        return { ...employees[employeeId], id: employeeId };
-      }
-      
-      return null;
-    } catch (indexError) {
-      console.log('Index error detected, falling back to non-indexed query method');
-      // Fall back to the non-indexed method if there's an index error
-      return getEmployeeByUserIdFallback(userId);
+    const employeesRef = ref(realtimeDb, 'employees');
+    const employeeQuery = query(employeesRef, orderByChild('userId'), equalTo(userId));
+    const snapshot = await get(employeeQuery);
+    
+    if (snapshot.exists()) {
+      const employees = snapshot.val();
+      const employeeId = Object.keys(employees)[0];
+      return { ...employees[employeeId], id: employeeId };
     }
+    
+    return null;
   } catch (error) {
     return handleDatabaseError(error, `Get employee by userId: ${userId}`);
   }
@@ -307,120 +300,50 @@ export const subscribeToEmployee = (
   return () => off(employeeRef);
 };
 
-// Fallback subscription function for goals that doesn't rely on indexes
-export const subscribeToGoalsFallback = (employeeId: string, callback: (goals: Goal[]) => void) => {
+export const subscribeToGoals = (employeeId: string, callback: (goals: Goal[]) => void) => {
   const goalsRef = ref(realtimeDb, 'goals');
+  const goalQuery = query(goalsRef, orderByChild('employeeId'), equalTo(employeeId));
   
-  const listener = onValue(goalsRef, (snapshot) => {
+  const listener = onValue(goalQuery, (snapshot) => {
     if (!snapshot.exists()) {
       callback([]);
       return;
     }
     
-    const goalsData = snapshot.val();
-    const formattedGoals = Object.keys(goalsData)
-      .filter(key => goalsData[key].employeeId === employeeId)
-      .map(key => ({
-        ...goalsData[key],
-        id: key
-      }));
+    const goals = snapshot.val();
+    const formattedGoals = Object.keys(goals).map(key => ({
+      ...goals[key],
+      id: key
+    }));
     
     callback(formattedGoals);
   });
   
   // Return a function to unsubscribe
-  return () => off(goalsRef, 'value');
+  return () => off(goalQuery, 'value');
 };
 
-// Updated subscribeToGoals function with fallback
-export const subscribeToGoals = (employeeId: string, callback: (goals: Goal[]) => void) => {
-  try {
-    const goalsRef = ref(realtimeDb, 'goals');
-    const goalQuery = query(goalsRef, orderByChild('employeeId'), equalTo(employeeId));
-    
-    const listener = onValue(goalQuery, (snapshot) => {
-      if (!snapshot.exists()) {
-        callback([]);
-        return;
-      }
-      
-      const goals = snapshot.val();
-      const formattedGoals = Object.keys(goals).map(key => ({
-        ...goals[key],
-        id: key
-      }));
-      
-      callback(formattedGoals);
-    }, (error) => {
-      console.error("Goals subscription error, falling back to unindexed method:", error);
-      // If there's an error with the indexed query, use the fallback
-      return subscribeToGoalsFallback(employeeId, callback);
-    });
-    
-    // Return a function to unsubscribe
-    return () => off(goalQuery, 'value');
-  } catch (error) {
-    console.error("Error setting up goals subscription, using fallback:", error);
-    return subscribeToGoalsFallback(employeeId, callback);
-  }
-};
-
-// Fallback subscription function for feedbacks that doesn't rely on indexes
-export const subscribeToFeedbacksFallback = (employeeId: string, callback: (feedbacks: Feedback[]) => void) => {
+export const subscribeToFeedbacks = (employeeId: string, callback: (feedbacks: Feedback[]) => void) => {
   const feedbacksRef = ref(realtimeDb, 'feedbacks');
+  const feedbackQuery = query(feedbacksRef, orderByChild('employeeId'), equalTo(employeeId));
   
-  const listener = onValue(feedbacksRef, (snapshot) => {
+  const listener = onValue(feedbackQuery, (snapshot) => {
     if (!snapshot.exists()) {
       callback([]);
       return;
     }
     
-    const feedbacksData = snapshot.val();
-    const formattedFeedbacks = Object.keys(feedbacksData)
-      .filter(key => feedbacksData[key].employeeId === employeeId)
-      .map(key => ({
-        ...feedbacksData[key],
-        id: key
-      }));
+    const feedbacks = snapshot.val();
+    const formattedFeedbacks = Object.keys(feedbacks).map(key => ({
+      ...feedbacks[key],
+      id: key
+    }));
     
     callback(formattedFeedbacks);
   });
   
   // Return a function to unsubscribe
-  return () => off(feedbacksRef, 'value');
-};
-
-// Updated subscribeToFeedbacks function with fallback
-export const subscribeToFeedbacks = (employeeId: string, callback: (feedbacks: Feedback[]) => void) => {
-  try {
-    const feedbacksRef = ref(realtimeDb, 'feedbacks');
-    const feedbackQuery = query(feedbacksRef, orderByChild('employeeId'), equalTo(employeeId));
-    
-    const listener = onValue(feedbackQuery, (snapshot) => {
-      if (!snapshot.exists()) {
-        callback([]);
-        return;
-      }
-      
-      const feedbacks = snapshot.val();
-      const formattedFeedbacks = Object.keys(feedbacks).map(key => ({
-        ...feedbacks[key],
-        id: key
-      }));
-      
-      callback(formattedFeedbacks);
-    }, (error) => {
-      console.error("Feedbacks subscription error, falling back to unindexed method:", error);
-      // If there's an error with the indexed query, use the fallback
-      return subscribeToFeedbacksFallback(employeeId, callback);
-    });
-    
-    // Return a function to unsubscribe
-    return () => off(feedbackQuery, 'value');
-  } catch (error) {
-    console.error("Error setting up feedbacks subscription, using fallback:", error);
-    return subscribeToFeedbacksFallback(employeeId, callback);
-  }
+  return () => off(feedbackQuery, 'value');
 };
 
 // Performance Metrics Management
@@ -453,60 +376,25 @@ export const getPerformanceMetricsByEmployeeId = async (employeeId: string): Pro
   }));
 };
 
-// Fallback subscription function for performance metrics that doesn't rely on indexes
-export const subscribeToPerformanceMetricsFallback = (employeeId: string, callback: (metrics: PerformanceMetric[]) => void) => {
+export const subscribeToPerformanceMetrics = (employeeId: string, callback: (metrics: PerformanceMetric[]) => void) => {
   const metricsRef = ref(realtimeDb, 'performanceMetrics');
+  const metricsQuery = query(metricsRef, orderByChild('employeeId'), equalTo(employeeId));
   
-  const listener = onValue(metricsRef, (snapshot) => {
+  const listener = onValue(metricsQuery, (snapshot) => {
     if (!snapshot.exists()) {
       callback([]);
       return;
     }
     
-    const metricsData = snapshot.val();
-    const formattedMetrics = Object.keys(metricsData)
-      .filter(key => metricsData[key].employeeId === employeeId)
-      .map(key => ({
-        ...metricsData[key],
-        id: key
-      }));
+    const metrics = snapshot.val();
+    const formattedMetrics = Object.keys(metrics).map(key => ({
+      ...metrics[key],
+      id: key
+    }));
     
     callback(formattedMetrics);
   });
   
-  // Return a function to unsubscribe
-  return () => off(metricsRef, 'value');
-};
-
-// Updated subscribeToPerformanceMetrics function with fallback
-export const subscribeToPerformanceMetrics = (employeeId: string, callback: (metrics: PerformanceMetric[]) => void) => {
-  try {
-    const metricsRef = ref(realtimeDb, 'performanceMetrics');
-    const metricsQuery = query(metricsRef, orderByChild('employeeId'), equalTo(employeeId));
-    
-    const listener = onValue(metricsQuery, (snapshot) => {
-      if (!snapshot.exists()) {
-        callback([]);
-        return;
-      }
-      
-      const metrics = snapshot.val();
-      const formattedMetrics = Object.keys(metrics).map(key => ({
-        ...metrics[key],
-        id: key
-      }));
-      
-      callback(formattedMetrics);
-    }, (error) => {
-      console.error("Performance metrics subscription error, falling back to unindexed method:", error);
-      // If there's an error with the indexed query, use the fallback
-      return subscribeToPerformanceMetricsFallback(employeeId, callback);
-    });
-    
-    // Return unsubscribe function
-    return () => off(metricsQuery);
-  } catch (error) {
-    console.error("Error setting up performance metrics subscription, using fallback:", error);
-    return subscribeToPerformanceMetricsFallback(employeeId, callback);
-  }
+  // Return unsubscribe function
+  return () => off(metricsQuery);
 };

@@ -5,7 +5,6 @@ import LandingPage from './pages/LandingPage';
 import Dashboard from './components/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import PrivateRoute from './components/PrivateRoute';
-import Footer from './components/Footer';
 
 // This component redirects based on user role
 const RoleRouter = () => {
@@ -34,37 +33,32 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="flex flex-col min-h-screen">
-          <div className="flex-grow">
-            <Routes>
-              <Route path="/" element={<RoleRouter />} />
-              
-              {/* Employee routes */}
-              <Route 
-                path="/dashboard" 
-                element={
-                  <PrivateRoute allowedRoles={['employee']}>
-                    <Dashboard />
-                  </PrivateRoute>
-                } 
-              />
-              
-              {/* Admin routes */}
-              <Route 
-                path="/admin" 
-                element={
-                  <PrivateRoute allowedRoles={['admin']}>
-                    <AdminDashboard />
-                  </PrivateRoute>
-                } 
-              />
-              
-              {/* Fallback route */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </div>
-          <Footer />
-        </div>
+        <Routes>
+          <Route path="/" element={<RoleRouter />} />
+          
+          {/* Employee routes */}
+          <Route 
+            path="/dashboard" 
+            element={
+              <PrivateRoute allowedRoles={['employee']}>
+                <Dashboard />
+              </PrivateRoute>
+            } 
+          />
+          
+          {/* Admin routes */}
+          <Route 
+            path="/admin" 
+            element={
+              <PrivateRoute allowedRoles={['admin']}>
+                <AdminDashboard />
+              </PrivateRoute>
+            } 
+          />
+          
+          {/* Fallback route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </Router>
     </AuthProvider>
   );

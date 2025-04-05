@@ -24,12 +24,6 @@ export interface Employee {
   userId?: string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
-  photoURL?: string;
-  address?: string;
-  phoneNumber?: string;
-  birthDate?: string;
-  bio?: string;
-  emergencyContact?: string;
 }
 
 export interface Goal {

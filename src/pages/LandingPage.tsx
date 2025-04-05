@@ -20,6 +20,7 @@ import {
 import { registerUser } from '../services/firebaseService';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { ref, get, getDatabase } from 'firebase/database';
+import Footer from '../components/Footer';
 
 const LandingPage = () => {
   const [showLogin, setShowLogin] = useState(false);
@@ -141,7 +142,7 @@ const LandingPage = () => {
 
   if (showLogin) {
     return (
-      <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-6 cosmic-bg">
+      <div className="min-h-screen relative overflow-hidden flex flex-col items-center justify-center p-6 cosmic-bg">
         {/* Aurora Effect */}
         <div className="absolute inset-0 aurora-effect opacity-80"></div>
 
@@ -244,7 +245,7 @@ const LandingPage = () => {
         />
 
         {/* Enhanced Glassmorphic Login Card */}
-        <div className="max-w-md w-full glass-card backdrop-blur-2xl bg-white/5 border border-white/10 p-1 z-10 overflow-hidden animate-scale-in shadow-[0_0_30px_rgba(139,92,246,0.3)]">
+        <div className="max-w-md w-full glass-card backdrop-blur-2xl bg-white/5 border border-white/10 p-1 z-10 overflow-hidden animate-scale-in shadow-[0_0_30px_rgba(139,92,246,0.3)] mb-16">
           {/* Shimmering border effect */}
           <div className="absolute inset-0 animated-gradient opacity-10"></div>
           
@@ -429,6 +430,11 @@ const LandingPage = () => {
             )}
           </div>
         </div>
+
+        {/* Footer with added margin-top */}
+        <div className="mt-auto w-full">
+          <Footer />
+        </div>
       </div>
     );
   }
@@ -545,6 +551,9 @@ const LandingPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
