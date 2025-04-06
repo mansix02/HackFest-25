@@ -23,6 +23,7 @@ import {
   LogIn,
   User
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import EmployeeLogin from './EmployeeLogin';
 import EmployeeProfile from './EmployeeProfile';
 
@@ -51,10 +52,8 @@ const Footer: React.FC = () => {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   
-  // Login modal state
-  const [showLoginModal, setShowLoginModal] = useState(false);
+  // Login and profile state
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   // Performance prediction state
   const [showPredictionTool, setShowPredictionTool] = useState(false);
@@ -64,28 +63,6 @@ const Footer: React.FC = () => {
   const [feedbackScore, setFeedbackScore] = useState(7);
   const [predictedIncrease, setPredictedIncrease] = useState(0);
   const [salaryIncrease, setSalaryIncrease] = useState(0);
-  
-  // Handle login
-  const handleLogin = async (employeeId: string, password: string) => {
-    // In a real app, you would call your auth service here
-    console.log('Login attempt:', { employeeId, password });
-    
-    // Simulating API call
-    return new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        // Mock authentication - in a real app, this would be your API authentication
-        if (employeeId === 'EMP123' && password === 'password') {
-          setShowLoginModal(false);
-          setIsLoggedIn(true);
-          setShowProfileModal(true);
-          resolve();
-          // In a real app, you would set the auth state and redirect
-        } else {
-          reject(new Error('Invalid employee ID or password'));
-        }
-      }, 1000);
-    });
-  };
   
   // Calculate prediction when inputs change
   useEffect(() => {
@@ -173,27 +150,16 @@ const Footer: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-indigo-500 to-transparent animate-shimmer"></div>
         </div>
         
-        {/* Employee Login/Profile Button */}
+        {/* Employee Login Button - Now using React Router Link */}
         <div className="text-center mb-8">
-          {isLoggedIn ? (
-            <button 
-              onClick={() => setShowProfileModal(true)}
-              className="glass-button-primary px-5 py-2 rounded-lg inline-flex items-center bg-gradient-to-r from-indigo-500/80 to-purple-500/80 hover:from-indigo-500 hover:to-purple-500 transition-colors group"
-            >
-              <User className="w-4 h-4 mr-2" />
-              View Employee Profile
-              <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-            </button>
-          ) : (
-            <button 
-              onClick={() => setShowLoginModal(true)}
-              className="glass-button-primary px-5 py-2 rounded-lg inline-flex items-center bg-gradient-to-r from-indigo-500/80 to-purple-500/80 hover:from-indigo-500 hover:to-purple-500 transition-colors group"
-            >
-              <LogIn className="w-4 h-4 mr-2" />
-              Employee Login
-              <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-            </button>
-          )}
+          <Link 
+            to="/login"
+            className="glass-button-primary px-5 py-2 rounded-lg inline-flex items-center bg-gradient-to-r from-indigo-500/80 to-purple-500/80 hover:from-indigo-500 hover:to-purple-500 transition-colors group"
+          >
+            <LogIn className="w-4 h-4 mr-2" />
+            Employee Login
+            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+          </Link>
         </div>
         
         {/* ML Performance Prediction Tool */}
@@ -519,13 +485,6 @@ const Footer: React.FC = () => {
           </div>
         </div>
       </div>
-      
-      {/* Login Modal */}
-      <EmployeeLogin 
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        onLogin={handleLogin}
-      />
       
       {/* Employee Profile Modal */}
       <EmployeeProfile
